@@ -1,0 +1,28 @@
+# Core dependencies
+torch>=2.0.0
+torchmetrics>=0.11.0
+pytorch-lightning>=2.0.0
+sentencepiece>=0.1.99
+git+https://github.com/deepseek-ai/Janus.git
+
+# Data processing
+numpy>=1.21.0
+pandas>=1.5.0
+networkx>=2.8.0
+pyyaml>=6.0.0
+scikit-learn>=1.0.0
+
+# Text processing
+regex>=2022.0.0
+nltk>=3.7.0
+
+# Image processing
+pillow>=9.0.0
+
+# Utilities
+tqdm>=4.64.0
+matplotlib>=3.5.0
+
+# Optimization
+wandb>=0.15.0  # For experiment tracking
+peft>=0.4.0    # For LoRA adapters
