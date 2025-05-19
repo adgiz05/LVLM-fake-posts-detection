@@ -22,8 +22,13 @@ class VLLMClassifierModule(pl.LightningModule):
 
         self.loss_fn = torch.nn.CrossEntropyLoss()
 
-        self.acc = Accuracy(task=data_config.task, num_classes=data_config.num_classes)
-        self.f1 = F1Score(task="multiclass", num_classes=config.data_config.num_classes, average="macro")
+        self.train_acc = Accuracy(task=data_config.task, num_classes=data_config.num_classes)
+        self.val_acc = Accuracy(task=data_config.task, num_classes=data_config.num_classes)
+        self.test_acc = Accuracy(task=data_config.task, num_classes=data_config.num_classes)
+        
+        self.train_f1 = F1Score(task="multiclass", num_classes=config.data_config.num_classes, average="macro")
+        self.val_f1 = F1Score(task="multiclass", num_classes=config.data_config.num_classes, average="macro")
+        self.test_f1 = F1Score(task="multiclass", num_classes=config.data_config.num_classes, average="macro")
 
         self.optimizer_config = config.optimizer_config
 
@@ -36,15 +41,16 @@ class VLLMClassifierModule(pl.LightningModule):
         inputs, labels = batch
         logits = self.model(**inputs)
         loss = self.loss_fn(logits, labels)
+
         preds = torch.argmax(logits, dim=-1)
-
-        acc = self.acc(preds, labels)
-        f1 = self.f1(preds, labels)
-
-        return loss, acc, f1
+        return loss, preds, labels
     
     def training_step(self, batch, batch_idx):
-        loss, acc, f1 = self._step(batch, batch_idx)
+        loss, preds, labels = self._step(batch, batch_idx)
+
+        acc = self.train_acc(preds, labels)
+        f1 = self.train_f1(preds, labels)
+        
         self.log_dict({
             "train_loss": loss,
             "train_acc": acc,
@@ -53,7 +59,11 @@ class VLLMClassifierModule(pl.LightningModule):
         return loss
     
     def validation_step(self, batch, batch_idx):
-        loss, acc, f1 = self._step(batch, batch_idx)
+        loss, preds, labels = self._step(batch, batch_idx)
+
+        acc = self.val_acc(preds, labels)
+        f1 = self.val_f1(preds, labels)
+        
         self.log_dict({
             "val_loss": loss,
             "val_acc": acc,
@@ -62,7 +72,11 @@ class VLLMClassifierModule(pl.LightningModule):
         return loss
     
     def test_step(self, batch, batch_idx):
-        loss, acc, f1 = self._step(batch, batch_idx)
+        loss, preds, labels = self._step(batch, batch_idx)
+
+        acc = self.test_acc(preds, labels)
+        f1 = self.test_f1(preds, labels)
+        
         self.log_dict({
             "test_loss": loss,
             "test_acc": acc,
